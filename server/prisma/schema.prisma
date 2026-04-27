@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum AlertStatus {
+  ACTIVE
+  UNDER_REVIEW
+  RESOLVED
+  ARCHIVED
+}
+
+enum NotificationType {
+  ALERT
+  REPORT
+  SUCCESS
+  UPDATE
+  MODERATION
+}
+
+model User {
+  id                     Int            @id @default(autoincrement())
+  fullname               String
+  email                  String         @unique
+  password               String
+  phone                  String?
+  city                   String?
+  addressLabel           String?
+  latitude               Float?
+  longitude              Float?
+  role                   Role           @default(USER)
+  reputation             Int            @default(80)
+  badges                 String[]       @default([])
+  trustScore             Int            @default(50)
+  privacyAccepted        Boolean        @default(false)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  alerts                 Alert[]
+  reports                Report[]
+  notifications          Notification[]
+  messages               Message[]
+  moderationActions      ModerationAction[] @relation("ActionActor")
+}
+
+model Alert {
+  id                     Int            @id @default(autoincrement())
+  childName              String
+  age                    Int
+  gender                 String
+  heightCm               Int
+  weightKg               Int
+  eyeColor               String
+  hairColor              String
+  clothesTop             String
+  clothesBottom          String
+  shoes                  String
+  accessories            String?
+  distinctiveSigns       String?
+  medicalNotes           String?
+  emergencyContacts      String?
+  photoUrl               String?
+  description            String
+  lastSeenLocation       String
+  latitude               Float
+  longitude              Float
+  missingSince           DateTime
+  radius                 Int            @default(2500)
+  status                 AlertStatus    @default(ACTIVE)
+  falseInfoScore         Int            @default(10)
+  completenessScore      Int            @default(40)
+  priorityScore          Int            @default(50)
+  faceSearchStatus       String         @default("pending")
+  verificationNotes      String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  resolvedAt             DateTime?
+  createdById            Int
+  createdBy              User           @relation(fields: [createdById], references: [id])
+  reports                Report[]
+  messages               Message[]
+  notifications          Notification[]
+  moderationActions      ModerationAction[]
+}
+
+model Report {
+  id                     Int            @id @default(autoincrement())
+  description            String
+  locationLabel          String
+  latitude               Float
+  longitude              Float
+  seenAt                 DateTime
+  photoUrl               String?
+  aiConfidence           Int            @default(0)
+  faceMatchScore         Int            @default(0)
+  falseInfoRisk          Int            @default(0)
+  verified               Boolean        @default(false)
+  createdAt              DateTime       @default(now())
+  alertId                Int
+  alert                  Alert          @relation(fields: [alertId], references: [id])
+  userId                 Int
+  user                   User           @relation(fields: [userId], references: [id])
+}
+
+model Message {
+  id                     Int            @id @default(autoincrement())
+  content                String
+  createdAt              DateTime       @default(now())
+  alertId                Int
+  alert                  Alert          @relation(fields: [alertId], references: [id])
+  userId                 Int
+  user                   User           @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id                     Int               @id @default(autoincrement())
+  title                  String
+  message                String
+  type                   NotificationType
+  isRead                 Boolean           @default(false)
+  createdAt              DateTime          @default(now())
+  userId                 Int
+  user                   User              @relation(fields: [userId], references: [id])
+  alertId                Int?
+  alert                  Alert?            @relation(fields: [alertId], references: [id])
+}
+
+model ModerationAction {
+  id                     Int            @id @default(autoincrement())
+  action                 String
+  reason                 String?
+  createdAt              DateTime       @default(now())
+  actorId                Int
+  actor                  User           @relation("ActionActor", fields: [actorId], references: [id])
+  alertId                Int
+  alert                  Alert          @relation(fields: [alertId], references: [id])
+}
