@@ -207,7 +207,7 @@ export async function getAlerts(req, res) {
     if (status) {
       where.status = status;
     } else {
-      // Par défaut, seules les alertes approuvées sont visibles publiquement
+      
       where.status = 'ACTIVE';
     }
 
@@ -262,7 +262,7 @@ export async function getAlertById(req, res) {
 
     const isManager = canManageAlert(alert, req.user);
 
-    // Si l’alerte n’est pas ACTIVE, seuls le créateur/admin/mod peuvent la voir
+    
     if (alert.status !== 'ACTIVE' && !isManager) {
       return res.status(403).json({
         message: 'Cette alerte n’est pas accessible.',
@@ -301,9 +301,7 @@ export async function createAlert(req, res) {
     const falseInfoScore = computeFalseInfoScore(normalized);
     const priorityScore = computePriorityScore(normalized);
 
-    // Nouvelle logique :
-    // - utilisateur normal => UNDER_REVIEW
-    // - admin/mod => ACTIVE direct
+    
     const initialStatus =
       req.user.role === 'ADMIN' || req.user.role === 'MODERATOR'
         ? 'ACTIVE'
@@ -457,7 +455,7 @@ export async function updateAlert(req, res) {
     const falseInfoScore = computeFalseInfoScore(normalized);
     const priorityScore = computePriorityScore(normalized);
 
-    // Si utilisateur normal modifie une alerte, elle repasse en revue
+    
     const nextStatus =
       req.user.role === 'ADMIN' || req.user.role === 'MODERATOR'
         ? existing.status
