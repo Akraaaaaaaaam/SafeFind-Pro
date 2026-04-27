@@ -1,84 +1,91 @@
+````markdown
 # SafeFind Pro
 
-Projet full stack amélioré pour la gestion d’alertes de personnes disparues.
+SafeFind Pro est une plateforme web pour la gestion et le suivi des alertes concernant des enfants disparus ou temporairement perdus dans des lieux publics.
 
-## Ce que cette version ajoute
-- **Admin panel** avec rôles `USER`, `MODERATOR`, `ADMIN`
-- **PostgreSQL + Prisma**
-- **Service IA FastAPI** séparé
-- **Reconnaissance faciale assistée** (architecture prête, endpoint prévu, DeepFace en dépendance)
-- **Stockage cloud des images** via **Cloudinary** ou fallback local
-- **Sélection de position sur carte réelle** + **GPS automatique**
-- **Forum par cas** avec messages temps réel
-- **Signalement “j’ai vu cette personne”** avec photo, GPS, heure, description
-- **Badges** et score de confiance utilisateur
-- **Statistiques enrichies** (lieux, heures, rôles, badges)
-- **Modération** et clôture du cas
+Le projet permet de créer une alerte détaillée, d’indiquer la dernière position connue sur une carte, de recevoir des signalements de témoins et de gérer le suivi du cas à travers un espace de discussion et un système de modération.
 
-## Architecture
-- `client/` : React + Vite + Tailwind + React Router + Leaflet + Socket.io client
-- `server/` : Express + Prisma + PostgreSQL + Socket.io + Multer + Cloudinary
-- `ai-service/` : FastAPI + DeepFace (fallback inclus)
-- `docker-compose.yml` : PostgreSQL
+## Fonctionnalités
 
-## Processus de traitement d’une alerte
-1. **Inscription** : l’utilisateur choisit sa position via GPS ou carte réelle.
-2. **Création d’alerte** : formulaire précis (photo, taille, poids, vêtements, signes distinctifs, heure, zone, contacts).
-3. **Validation backend** : champs requis + calculs :
-   - **completenessScore** : qualité du dossier
-   - **falseInfoScore** : risque initial de mauvaise information
-   - **priorityScore** : priorité de diffusion
-4. **Diffusion** : l’alerte apparaît dans la bannière live, sur la carte et dans les notifications.
-5. **Signalements témoins** : ajout d’un lieu, d’une heure, d’une photo et d’un texte.
-6. **IA** :
-   - `risk/analyze` évalue le risque de mauvaise information à partir du texte et du lieu.
-   - `face/verify` compare la photo de référence à la photo témoin.
-7. **Forum par cas** : famille, témoins et modération peuvent échanger.
-8. **Admin / modération** : un modérateur peut mettre en revue, approuver, archiver ou résoudre un cas.
-9. **Statistiques** : agrégation par lieu, heure, rôle, badges et volume d’activité.
+- Inscription et connexion des utilisateurs
+- Gestion du profil utilisateur
+- Création d’alertes avec informations détaillées
+- Ajout de photo pour chaque alerte
+- Sélection de la position sur une carte interactive
+- Récupération de la position GPS actuelle
+- Affichage des alertes sur la carte
+- Signalement par les témoins
+- Ajout d’une photo, d’une description et d’une position dans un signalement
+- Forum de discussion pour chaque cas
+- Notifications en temps réel
+- Gestion des rôles : utilisateur, modérateur et administrateur
+- Modération des alertes
+- Statistiques générales
+- Calcul de scores : priorité, complétude et risque de fausse information
+- Service IA séparé pour l’analyse des signalements
 
-## Comment la priorité est calculée
-Le backend utilise `server/src/utils/scores.js`.
-La priorité augmente surtout quand :
-- la disparition est **récente**
-- l’enfant est **jeune**
-- la localisation est **précise**
-- le dossier est **complet**
-- le risque de mauvaise information est **bas**
+## Structure du projet
 
-## Comment le risque de mauvaise information est calculé
-Le risque baisse quand :
-- il y a une **photo**
-- le **GPS** est fourni
-- la description est **longue et précise**
-- taille, poids, vêtements, signes distinctifs sont présents
+```text
+safefind_fullstack_pro/
+│
+├── client/          Interface utilisateur
+├── server/          Backend et API
+├── ai-service/      Service IA
+└── docker-compose.yml
+````
 
-## Reconnaissance faciale : ce qui se passe
-La photo de référence de l’alerte et la photo du signalement sont envoyées au service IA.
-Cette version contient l’**architecture** et les **endpoints**. Pour une vraie prod, ajoute :
-- téléchargement local des images avant vérification
-- **DeepFace** ou **InsightFace** avec modèles installés
-- **anti-spoofing**
-- pipeline de validation humaine
+## Technologies utilisées
 
-## Installation complète
+### Frontend
 
-### 1) Prérequis
-- Node.js 20+
-- Python 3.11+
-- Docker Desktop
+* React
+* Vite
+* Tailwind CSS
+* React Router
+* Leaflet
+* Socket.io Client
 
-### 2) Base de données PostgreSQL
+### Backend
+
+* Node.js
+* Express.js
+* Prisma ORM
+* PostgreSQL
+* Socket.io
+* Multer
+* Cloudinary
+
+### Service IA
+
+* Python
+* FastAPI
+* DeepFace
+
+### Base de données
+
+* PostgreSQL
+* Prisma
+
+## Installation
+
+### Prérequis
+
+* Node.js
+* Python
+* Docker Desktop
+* Git
+
+### Base de données
+
 À la racine du projet :
-```bash
-npm install -g prisma
-```
-Puis :
+
 ```bash
 docker compose up -d
 ```
 
-### 3) Backend
+### Backend
+
 ```bash
 cd server
 npm install
@@ -88,49 +95,94 @@ npx prisma db push
 npm run seed
 npm run dev
 ```
-> Sous PowerShell, si `copy` pose problème, crée `.env` manuellement à partir de `.env.example`.
 
-### 4) Frontend
+### Frontend
+
 Dans un autre terminal :
+
 ```bash
 cd client
 npm install
 npm run dev
 ```
 
-### 5) Service IA
+### Service IA
+
 Dans un troisième terminal :
+
 ```bash
 cd ai-service
 python -m venv .venv
-.venv\Scriptsctivate
+.venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
 ## URLs
-- Frontend : `http://localhost:5173`
-- Backend : `http://localhost:5000`
-- IA : `http://localhost:8000`
+
+```text
+Frontend   : http://localhost:5173
+Backend    : http://localhost:5000
+Service IA : http://localhost:8000
+```
 
 ## Comptes de test
-- **Admin** : `admin@safefind.com` / `12345678`
-- **Modérateur** : `moderator@safefind.com` / `12345678`
-- **Utilisateur** : `demo@safefind.com` / `12345678`
 
-## Cloudinary
-Si tu veux le stockage cloud, renseigne dans `server/.env` :
-- `CLOUDINARY_CLOUD_NAME`
-- `CLOUDINARY_API_KEY`
-- `CLOUDINARY_API_SECRET`
-- `UPLOAD_MODE=cloudinary`
+```text
+Admin
+Email : admin@safefind.com
+Mot de passe : 12345678
 
-## Ce qui est prêt et ce qui reste à brancher
-Cette archive est **très avancée et exploitable pour ton projet**, mais quelques parties “vraie prod” restent à finaliser selon ton environnement :
-- téléchargement effectif d’images distantes côté IA avant `DeepFace.verify`
-- anti-spoofing / liveness
-- filtrage géographique côté requête SQL
-- stockage cloud sécurisé en prod
-- panel admin plus complet (suppression, audit détaillé, logs)
+Modérateur
+Email : moderator@safefind.com
+Mot de passe : 12345678
 
-C’est volontaire : ça te donne une base forte, claire et extensible, sans te bloquer avec une installation trop fragile dès le début.
+Utilisateur
+Email : demo@safefind.com
+Mot de passe : 12345678
+```
+
+## Configuration Cloudinary
+
+Pour utiliser le stockage cloud des images, ajouter les informations suivantes dans `server/.env` :
+
+```env
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+UPLOAD_MODE=cloudinary
+```
+
+Si Cloudinary n’est pas configuré, les images peuvent être stockées localement.
+
+## Scores
+
+Le backend calcule plusieurs scores pour aider au traitement des alertes :
+
+* `completenessScore` : niveau de complétude des informations saisies
+* `priorityScore` : priorité de l’alerte
+* `falseInfoScore` : risque potentiel de fausse information
+
+Ces scores prennent en compte la présence d’une photo, la précision de la localisation, l’âge de l’enfant, la description, les vêtements, les signes distinctifs et les données du signalement.
+
+## Objectif
+
+SafeFind Pro a pour objectif de faciliter la diffusion rapide des alertes aux personnes proches de la dernière position connue, tout en centralisant les informations, les signalements et les échanges autour de chaque cas.
+
+## État du projet
+
+Le projet contient les éléments principaux nécessaires pour une démonstration :
+
+* Interface utilisateur
+* Authentification
+* Gestion des rôles
+* Création et suivi des alertes
+* Carte interactive
+* Signalements
+* Forum par cas
+* Notifications
+* Modération
+* Statistiques
+* Service IA séparé
+
+Certaines parties peuvent encore être améliorées pour une utilisation réelle, notamment la reconnaissance faciale avancée, l’anti-spoofing, la sécurité de production et l’optimisation du filtrage géographique.
